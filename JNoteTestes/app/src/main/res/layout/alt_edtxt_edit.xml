@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<EditText xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:inputType="textMultiLine"
+    android:ems="10"
+    android:id="@+id/editText2"
+    android:layout_above="@+id/button"
+    android:layout_below="@+id/spinner"
+    android:layout_alignStart="@+id/button"
+    android:editable="true"
+    android:layout_alignBaseline="@+id/textView4"
+    android:layout_marginBottom="128dp">
+
+</EditText>
