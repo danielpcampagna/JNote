@@ -1,0 +1,7 @@
+{
+	'version': '1.0',
+	'super':'JNote',
+	'label': "favoritas",
+	'type': 2,
+	'value': ["uva","maçã","banana"]
+}
