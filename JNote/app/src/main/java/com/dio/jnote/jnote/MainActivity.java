@@ -28,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
     private Stack<ObjectList> parentStack = new Stack<>();
     private ListView lv;
     private ArrayAdapter<String> adapter;
+    private int positionObj = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,36 +57,46 @@ public class MainActivity extends AppCompatActivity {
         else
             adapter = new ArrayAdapter<>(this,android.R.layout.simple_list_item_1, new String[]{"//SEM CONTEÚDO//"});
         lv.setAdapter(adapter);
-        //registerForContextMenu(lv);
+        lv.setOnItemClickListener(viewContent(this));
+        registerForContextMenu(lv);
     }
 
-    /*@Override
-    public void onCreateContextMenu(ContextMenu menu, View v,
-                                    ContextMenu.ContextMenuInfo menuInfo) {
-        if(v.getId() == R.id.list) {
-            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-            menu.setHeaderTitle(Countries[info.position]);
-            String[] menuItems = getResources().getStringArray(R.array.menu);
-            for(int i = 0; i < menuItems.length; i++){
-                menu.add(Menu.NONE, i, i, menuItems[i]);
-            }
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v,ContextMenu.ContextMenuInfo menuInfo) {
+        if (v.getId()==R.id.listView) {
+            AdapterView.AdapterContextMenuInfo acmi = (AdapterView.AdapterContextMenuInfo) menuInfo;
+            positionObj = acmi.position;
+            menu.setHeaderTitle(lv.getItemAtPosition(acmi.position).toString());
+            menu.add(0, v.getId(), 0, "Editar");
+            menu.add(0, v.getId(), 0, "Remover");
         }
     }
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-        int menuItemIndex = item.getItemId();
-        String[] menuItems = getResources().getStringArray(R.array.menu);
-        String menuItemName = menuItems[menuItemIndex];
-        String listItemName = Countries[info.position];
 
-        TextView text = (TextView) findViewById(R.id.footer);
-        text.setText(String.format("Selected %s for item %s", menuItemName, listItemName));
+        if(item.getTitle()=="Editar"){
+            ObjectList obj = list.get(positionObj);
+            Intent i = new Intent(MainActivity.this,EditActivity.class);
+            String [] values = {obj.name, String.valueOf(obj.type) ,obj.value};
+            i.putExtra("VALUESVECTOR", values);
+            startActivityForResult(i,1);
+        }
+        else if(item.getTitle()=="Remover") {
+            list.remove(positionObj);
+            auxStringList = new ArrayList<>();
+            for (int i = 0; i < list.size(); i++) {
+                auxStringList.add(list.get(i).name);
+            }
+            adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, auxStringList);
+            lv.setAdapter(adapter);
+        }
+        else {return false;}
         return true;
-    }*/
+    }
 
     private AdapterView.OnItemClickListener viewContent(final Context context) {
+        System.out.println("entrou aki");
         return(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> av, View v, int position, long id){
@@ -114,22 +125,36 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         if(resultCode==1) {
             String[] res = data.getStringArrayExtra("VALUE");
+            boolean edit = data.getBooleanExtra("EDIT", true);
+            if(!edit) {
+                positionObj = -1;
+            }
             switch (res[2]) {
                 case "Dado simples":
-                    res[2] = "3";
+                    res[2] = "1";
                     break;
                 case "Dado composto":
                     res[2] = "2";
                     break;
                 case "Lista":
-                    res[2] = "1";
+                    res[2] = "3";
                     break;
             }
             ObjectList auxObj = new ObjectList(res[0], res[1], Integer.parseInt(res[2]));
             if(parentStack.empty()){
-                list.add(auxObj);
+                if(positionObj != -1){
+                    list.remove(positionObj);
+                    list.add(positionObj, auxObj);
+                } else {
+                    list.add(auxObj);
+                }
             }else{
-                auxObjectList.add(auxObj);
+                if(positionObj != -1){
+                    auxObjectList.remove(positionObj);
+                    auxObjectList.add(positionObj, auxObj);
+                } else {
+                    auxObjectList.add(auxObj);
+                }
             }
             auxStringList = new ArrayList<>();
             if(auxObjectList.isEmpty()) {

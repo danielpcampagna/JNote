@@ -7,9 +7,9 @@ import java.util.ArrayList;
  */
 public class ObjectList {
 
-    private final int TYPE_LIST = 1;
+    private final int TYPE_LIST = 3;
     private final int TYPE_OBJECT = 2;
-    private final int TYPE_SIMPLE = 3;
+    private final int TYPE_SIMPLE = 1;
 
     public String name;
     public String value;

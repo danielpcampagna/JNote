@@ -16,6 +16,11 @@ import android.widget.Spinner;
 public class EditActivity extends AppCompatActivity {
 
     private Spinner sp;
+    private String[] values;
+    private EditText edt;
+    private EditText edt2;
+    private boolean edit = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -23,9 +28,24 @@ public class EditActivity extends AppCompatActivity {
 
         String[] content = new String[]{"Dado simples","Dado composto","Lista"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this,android.R.layout.simple_list_item_1,content);
+
+        Intent i = getIntent();
+        values = i.getStringArrayExtra("VALUESVECTOR");
+
         sp = (Spinner) findViewById(R.id.spinner);
         sp.setAdapter(adapter);
         sp.setOnItemSelectedListener(redefineLayout(this));
+
+        edt = (EditText) findViewById(R.id.editText);
+        edt2 = (EditText) findViewById(R.id.editText2);
+        if(values != null){
+            edit = true;
+            edt.setText(values[0]);
+            if(values[2] == "1"){
+                edt2.setText(values[2]);
+            }
+            sp.setSelection(Integer.parseInt(values[1]) - 1);
+        }
 
         Button bt = (Button) findViewById(R.id.button);
         bt.setOnClickListener(addData());
@@ -44,21 +64,23 @@ public class EditActivity extends AppCompatActivity {
     public void onBackPressed(){
         Intent i = new Intent();
         String[] str;
+        EditText edtaux = edt;
+        EditText edtaux2 = edt;
+
         if (sp.getSelectedItem().toString().equals("Dado simples")) {
-            EditText edt = (EditText) findViewById(R.id.editText);
-            EditText edt2 = (EditText) findViewById(R.id.editText2);
-            if ((!edt.getText().toString().equals("")) && (!edt2.getText().toString().equals(""))) {
-                str = new String[]{edt.getText().toString(), edt2.getText().toString(), sp.getSelectedItem().toString()};
+            if ((!edtaux.getText().toString().equals("")) && (!edtaux2.getText().toString().equals(""))) {
+                str = new String[]{edtaux.getText().toString(), edtaux2.getText().toString(), sp.getSelectedItem().toString()};
                 i.putExtra("VALUE", str);
+                i.putExtra("EDIT" , edit);
                 setResult(1, i);
             }else
                 setResult(0);
         }
         else {
-            EditText edt = (EditText) findViewById(R.id.editText);
-            if (!edt.getText().toString().equals("")) {
-                str = new String[]{edt.getText().toString(), " " , sp.getSelectedItem().toString()};
+            if (!edtaux.getText().toString().equals("")) {
+                str = new String[]{edtaux.getText().toString(), " " , sp.getSelectedItem().toString()};
                 i.putExtra("VALUE", str);
+                i.putExtra("EDIT" , edit);
                 setResult(1, i);
             }else
                 setResult(0);
@@ -71,12 +93,16 @@ public class EditActivity extends AppCompatActivity {
             private boolean added=false;
             @Override
             public void onItemSelected(AdapterView<?> av, View v, int position, long id){
-                if(position==0){
+                if(position==0 || (values != null && values[1].equals("1"))) {
                     RelativeLayout rl = (RelativeLayout) findViewById(R.id.rl);
                     LayoutInflater li = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                    rl.addView(li.inflate(R.layout.alt_txtv_edit,rl,false),4);
-                    rl.addView(li.inflate(R.layout.alt_edtxt_edit,rl,false),5);
-                    added=true;
+                    rl.addView(li.inflate(R.layout.alt_txtv_edit, rl, false), 4);
+                    rl.addView(li.inflate(R.layout.alt_edtxt_edit, rl, false), 5);
+                    added = true;
+                    edt2 = (EditText) findViewById(R.id.editText2);
+                    if(values != null){
+                        edt2.setText(values[2]);
+                    }
                 }else{
                     if(added){
                         RelativeLayout rl = (RelativeLayout) findViewById(R.id.rl);
