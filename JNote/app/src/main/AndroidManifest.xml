@@ -26,6 +26,8 @@
         <activity
             android:name=".ViewActivity"
             android:label="" />
+        <activity
+            android:name=".Main2Activity"/>
     </application>
 
 </manifest>

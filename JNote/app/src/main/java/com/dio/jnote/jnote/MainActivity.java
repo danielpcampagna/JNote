@@ -1,27 +1,29 @@
 package com.dio.jnote.jnote;
 
 import dao.ObjectList;
+
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.Stack;
 
 public class MainActivity extends AppCompatActivity {
 
     private ArrayList<ObjectList> list = new ArrayList<>(); //CONTEUDO DO JSON
-    private ObjectList auxObjectList;
+    private ArrayList<ObjectList> auxObjectList = new ArrayList<>();
     private ArrayList<String> auxStringList;
     private Stack<ObjectList> parentStack = new Stack<>();
     private ListView lv;
@@ -54,8 +56,34 @@ public class MainActivity extends AppCompatActivity {
         else
             adapter = new ArrayAdapter<>(this,android.R.layout.simple_list_item_1, new String[]{"//SEM CONTEÚDO//"});
         lv.setAdapter(adapter);
-        lv.setOnItemClickListener(viewContent(this));
+        //registerForContextMenu(lv);
     }
+
+    /*@Override
+    public void onCreateContextMenu(ContextMenu menu, View v,
+                                    ContextMenu.ContextMenuInfo menuInfo) {
+        if(v.getId() == R.id.list) {
+            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+            menu.setHeaderTitle(Countries[info.position]);
+            String[] menuItems = getResources().getStringArray(R.array.menu);
+            for(int i = 0; i < menuItems.length; i++){
+                menu.add(Menu.NONE, i, i, menuItems[i]);
+            }
+        }
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        int menuItemIndex = item.getItemId();
+        String[] menuItems = getResources().getStringArray(R.array.menu);
+        String menuItemName = menuItems[menuItemIndex];
+        String listItemName = Countries[info.position];
+
+        TextView text = (TextView) findViewById(R.id.footer);
+        text.setText(String.format("Selected %s for item %s", menuItemName, listItemName));
+        return true;
+    }*/
 
     private AdapterView.OnItemClickListener viewContent(final Context context) {
         return(new AdapterView.OnItemClickListener(){
@@ -70,9 +98,13 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(i);
                 }else{
                     Intent i = new Intent(context,Main2Activity.class);
-                    auxObjectList = list.get(position);
-                    parentStack.push(auxObjectList);
-                    startActivity(i);
+                    if(list.get(position).childList.isEmpty()) {
+                        auxObjectList = new ArrayList<>();
+                    }else{
+                        auxObjectList = list.get(position).childList;
+                    }
+                    parentStack.push(list.get(position));
+                    startActivityForResult(i,2);
                 }
             }
         });
@@ -94,15 +126,34 @@ public class MainActivity extends AppCompatActivity {
                     break;
             }
             ObjectList auxObj = new ObjectList(res[0], res[1], Integer.parseInt(res[2]));
-            list.add(auxObj);
-            auxStringList = new ArrayList<>();
-            for (int i = 0; i < list.size() ; i++) {
-                auxStringList.add(list.get(i).name);
+            if(parentStack.empty()){
+                list.add(auxObj);
+            }else{
+                auxObjectList.add(auxObj);
             }
-            adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, auxStringList);
+            auxStringList = new ArrayList<>();
+            if(auxObjectList.isEmpty()) {
+                for (int i = 0; i < list.size(); i++) {
+                    auxStringList.add(list.get(i).name);
+                }
+                adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, auxStringList);
+            }else{
+                for (int i = 0; i < auxObjectList.size(); i++) {
+                    auxStringList.add(auxObjectList.get(i).name);
+                }
+                adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, auxStringList);
+            }
             lv.setAdapter(adapter);
         } else if(resultCode == 2){
-
+            if(auxObjectList.isEmpty())
+                adapter = new ArrayAdapter<>(this,android.R.layout.simple_list_item_1, new String[]{"//SEM CONTEÚDO//"});
+            else {
+                for (int i = 0; i < auxObjectList.size(); i++) {
+                    auxStringList.add(auxObjectList.get(i).name);
+                }
+                adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, auxStringList);
+            }
+            lv.setAdapter(adapter);
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
@@ -127,6 +178,26 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed(){
+        if(parentStack.size()==1){
+                auxStringList=new ArrayList<>();
+                for (int i = 0; i < list.size() ; i++) {
+                    auxStringList.add(list.get(i).name);
+                }
+                adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, auxStringList);
+                lv.setAdapter(adapter);
+            }else{
+                auxStringList=new ArrayList<>();
+                ArrayList<ObjectList> auxChildList = parentStack.pop().childList;
+                for (int i = 0; i < auxChildList.size() ; i++) {
+                    auxStringList.add(auxChildList.get(i).name);
+                }
+                adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, auxStringList);
+                lv.setAdapter(adapter);
+        }
     }
 
 }
