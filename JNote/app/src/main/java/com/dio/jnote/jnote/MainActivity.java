@@ -1,5 +1,6 @@
 package com.dio.jnote.jnote;
 
+import dao.ObjectList;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -13,12 +14,16 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import java.sql.SQLOutput;
 import java.util.ArrayList;
+import java.util.Stack;
 
 public class MainActivity extends AppCompatActivity {
 
-    private ArrayList<String> names = new ArrayList<>(); //CONTEUDO DO JSON
-    private ArrayList<String> content = new ArrayList<>();
+    private ArrayList<ObjectList> list = new ArrayList<>(); //CONTEUDO DO JSON
+    private ObjectList auxObjectList;
+    private ArrayList<String> auxStringList;
+    private Stack<ObjectList> parentStack = new Stack<>();
     private ListView lv;
     private ArrayAdapter<String> adapter;
 
@@ -38,10 +43,14 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(i,1);
             }
         });
-
         lv = (ListView)findViewById(R.id.listView);
-        if(!names.isEmpty())
-            adapter = new ArrayAdapter<>(this,android.R.layout.simple_list_item_1, names);
+        if(!list.isEmpty()) {
+            auxStringList = new ArrayList<>();
+            for (int i = 0; i < list.size() ; i++) {
+                auxStringList.add(list.get(i).name);
+            }
+            adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, auxStringList);
+        }
         else
             adapter = new ArrayAdapter<>(this,android.R.layout.simple_list_item_1, new String[]{"//SEM CONTEÚDO//"});
         lv.setAdapter(adapter);
@@ -52,15 +61,18 @@ public class MainActivity extends AppCompatActivity {
         return(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> av, View v, int position, long id){
-                if(!content.get(position).equals(" ")){
+                if(list.get(position).type == 3){
                     Intent i = new Intent(context,ViewActivity.class);
                     String[] str = new String[2];
-                    str[0]=names.get(position);
-                    str[1]=content.get(position);
+                    str[0]=list.get(position).name;
+                    str[1]=list.get(position).value;
                     i.putExtra("NAME_VALUE",str);
                     startActivity(i);
                 }else{
-                    //CASO DE OBJETO COMPOSTO OU LISTA
+                    Intent i = new Intent(context,Main2Activity.class);
+                    auxObjectList = list.get(position);
+                    parentStack.push(auxObjectList);
+                    startActivity(i);
                 }
             }
         });
@@ -70,16 +82,27 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         if(resultCode==1) {
             String[] res = data.getStringArrayExtra("VALUE");
-            if (names.isEmpty())
-                names.add(0, res[0]);
-            else
-                names.add(names.size(), res[0]);
-            if (content.isEmpty())
-                content.add(0, res[1]);
-            else
-                content.add(content.size(), res[1]);
-            adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, names);
+            switch (res[2]) {
+                case "Dado simples":
+                    res[2] = "3";
+                    break;
+                case "Dado composto":
+                    res[2] = "2";
+                    break;
+                case "Lista":
+                    res[2] = "1";
+                    break;
+            }
+            ObjectList auxObj = new ObjectList(res[0], res[1], Integer.parseInt(res[2]));
+            list.add(auxObj);
+            auxStringList = new ArrayList<>();
+            for (int i = 0; i < list.size() ; i++) {
+                auxStringList.add(list.get(i).name);
+            }
+            adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, auxStringList);
             lv.setAdapter(adapter);
+        } else if(resultCode == 2){
+
         }
         super.onActivityResult(requestCode, resultCode, data);
     }

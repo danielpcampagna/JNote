@@ -48,7 +48,7 @@ public class EditActivity extends AppCompatActivity {
             EditText edt = (EditText) findViewById(R.id.editText);
             EditText edt2 = (EditText) findViewById(R.id.editText2);
             if ((!edt.getText().toString().equals("")) && (!edt2.getText().toString().equals(""))) {
-                str = new String[]{edt.getText().toString(), edt2.getText().toString()};
+                str = new String[]{edt.getText().toString(), edt2.getText().toString(), sp.getSelectedItem().toString()};
                 i.putExtra("VALUE", str);
                 setResult(1, i);
             }else
@@ -57,7 +57,7 @@ public class EditActivity extends AppCompatActivity {
         else {
             EditText edt = (EditText) findViewById(R.id.editText);
             if (!edt.getText().toString().equals("")) {
-                str = new String[]{edt.getText().toString(), " "};
+                str = new String[]{edt.getText().toString(), " " , sp.getSelectedItem().toString()};
                 i.putExtra("VALUE", str);
                 setResult(1, i);
             }else
