@@ -16,9 +16,9 @@ import java.util.Scanner;
 
 import junit.runner.Version;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONArray;
+import org.json.*;
+
+import config.Configuration;
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -33,7 +33,7 @@ import org.json.JSONArray;
  */
 public class JsonDao {
 	
-    private final static String DIR_DB = "";
+    
     private final static String FORMAT_JSON = ".json";
     private final static String DEFAULT_SEP = ".";
     // Jogar para um arquivo de configuração
@@ -43,6 +43,12 @@ public class JsonDao {
     public final static Integer ATTRIBUTE_TYPE = 1;
     public final static Integer ARRAY_TYPE =    2;
     public final static Integer OBJECT_TYPE =   3;
+    
+    private static String DIR_DB;
+    
+    public JsonDao(){
+    	DIR_DB = Configuration.getInstance().currentDB();
+    }
     
     public Map<String, Object> acessar(String caminho, String chave) throws IOException, IllegalArgumentException, JSONException {
     	
@@ -371,13 +377,19 @@ public class JsonDao {
     // Private Methods
     // 1) Métodos de acesso a arquivos
     private JSONObject open(String file) throws IOException, IllegalArgumentException, JSONException {
-        String filePathString = DIR_DB + file + FORMAT_JSON;
-        File f = new File(filePathString);
+    	String filePathString = file + FORMAT_JSON;
+    	File f = new File(filePathString);
+
+    	if(!f.exists()){
+    		filePathString = DIR_DB + file + FORMAT_JSON;
+    		f = new File(filePathString);
+    	}
+        
         if (f.exists() && !f.isDirectory()) {
         	
-        	String jsonText = new Scanner(new File(file))
+        	String jsonText = new Scanner(f)
             .useDelimiter("\\A").next();
-        	
+
             return new JSONObject(jsonText);
         } else {
             throw new IllegalArgumentException("Não existe a chave ou o caminho " + file);
@@ -385,6 +397,7 @@ public class JsonDao {
 
     }
     
+    // checar se esse é necessário diferenciar se é uma estrutura ou se é um elemento
     private boolean push(Map<String, Object> val, String file) throws IOException{
     	boolean result = false;
     	
@@ -544,8 +557,8 @@ public class JsonDao {
         String type = "type";
         String value = "value";
 
-        if (!isArray(val)) {
-            throw new IllegalArgumentException("Não é uma lista");
+        if (!isArray(val.get(value))) {
+            throw new IllegalArgumentException(val.toString() + "Não é uma lista");
         }
         
         JSONArray array = (JSONArray) val.get(value);
