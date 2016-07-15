@@ -56,6 +56,7 @@ public class EditActivity extends AppCompatActivity {
         return(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                onBackPressed();/*
                 Intent i = new Intent();
                 String[] str;
                 EditText edtaux = edt;
@@ -78,12 +79,12 @@ public class EditActivity extends AppCompatActivity {
                         setResult(1, i);
                     }else
                         setResult(0);
-                }
+                }*/
             }
         });
     }
 
-    /*@Override //REMOVER ESTA FUNÇÃO.
+    @Override //REMOVER ESTA FUNÇÃO.
     public void onBackPressed(){
         Intent i = new Intent();
         String[] str;
@@ -109,7 +110,7 @@ public class EditActivity extends AppCompatActivity {
                 setResult(0);
         }
         super.onBackPressed();
-    }*/
+    }
 
     private AdapterView.OnItemSelectedListener redefineLayout(final Context context) {
         return(new AdapterView.OnItemSelectedListener(){

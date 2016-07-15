@@ -35,20 +35,19 @@ public class JsonDao {
 	
     
     private final static String FORMAT_JSON = ".json";
-    private final static String DEFAULT_SEP = "build/intermediates/exploded-aar/com.android.support/support-vector-drawable/23.4.0/res";
+    private final static String DEFAULT_SEP = ".";
     // Jogar para um arquivo de configuração
     private final static String CURRENT_VERSION = "1.0";
     private final static String DEFAULT_ROOT = "JNote";
     
-    public final static Integer ATTRIBUTE_TYPE = 1;
-    public final static Integer ARRAY_TYPE =    2;
-    public final static Integer OBJECT_TYPE =   3;
+    public final static String ATTRIBUTE_TYPE = "1";
+    public final static String ARRAY_TYPE =    "2";
+    public final static String OBJECT_TYPE =   "3";
     
     private static String DIR_DB;
     
     public JsonDao(){
     	DIR_DB = Configuration.getInstance().currentDB();
-        System.out.println(DIR_DB);
     }
     
     public Map<String, Object> acessar(String caminho, String chave) throws IOException, IllegalArgumentException, JSONException {
@@ -91,23 +90,23 @@ public class JsonDao {
      *      'version': '1.0',
      *      'super': '',
      *      'label': "JNote",
-     *      'type': 2,
+     *      'type': "2",
      *      'value': [
      *          {
      *              'label': "nome",
-     *              'type': 1,
+     *              'type': "1",
      *              'value': "João"
      *          },{
      *              'label': "idade",
-     *              'type': 1,
+     *              'type': "1",
      *              'value': "16"
      *          },{
      *              'label': "favoritas",
-     *              'type': 2,
+     *              'type': "2",
      *              'value': null
      *          },{
      *              'label': "educação",
-     *              'type': 3,
+     *              'type': "3",
      *              'value': null
      *          }
      *      ]
@@ -119,7 +118,7 @@ public class JsonDao {
      *          'version': '1.0',
      *          'super':'JNote',
      *          'label': "favoritas",
-     *          'type': 2,
+     *          'type': "2",
      *          'value': ["uva","maçã","banana"]
      *      }
      * 
@@ -129,15 +128,15 @@ public class JsonDao {
      *          'version': '1.0',
      *          'super':'JNote',
      *          'label': "educação",
-     *          'type': 3,
+     *          'type': "3",
      *          'value': [
      *              {
      *                  'label': "ensino médio",
-     *                  'type': 3,
+     *                  'type': "3",
      *                  'value': null
      *              },{
      *                  'label':"graduação",
-     *                  'type': 3,
+     *                  'type': "3",
      *                  'value': null
      *              }
      *          ]
@@ -149,19 +148,19 @@ public class JsonDao {
      *          'version': '1.0',
      *          'super':'JNote.educacao',
      *          'label': "ensino médio",
-     *          'type': 3,
+     *          'type': "3",
      *          'value': [
      *              {
      *                  'labe': "nome",
-     *                  'type': 1,
+     *                  'type': "1",
      *                  'value': "colégio X"
      *              },{
      *                  'label': "inicio",
-     *                  'type': 1,
+     *                  'type': "1",
      *                  'value': "2009"
      *              },{
      *                  'label': "fim",
-     *                  'type': 1,
+     *                  'type': "1",
      *                  'value': "2012"
      *              }
      *          ]
@@ -173,7 +172,7 @@ public class JsonDao {
      *          'version': '1.0',
      *          'super':'JNote.educação.ensino médio',
      *          'label': "nome",
-     *          'type': 1,
+     *          'type': "1",
      *          'value': "colégio x"
      *      }
      * @throws JSONException 
@@ -191,7 +190,7 @@ public class JsonDao {
         String label = "label";
         String type = "type";
         String value = "value";
-
+        
         // version
         result.put(version, getAttribute(version, sourceJson));
         // super
@@ -201,7 +200,7 @@ public class JsonDao {
         // type
         result.put(type, getAttribute(type, sourceJson));
         // value
-        if (result.get(type) == (Integer) ATTRIBUTE_TYPE) {
+        if (((String)result.get(type)).trim().equals(ATTRIBUTE_TYPE)) {
             result.put(value, getAttribute(value, sourceJson));
         } else {
             result.put(value, getValue(sourceJson));
@@ -304,7 +303,7 @@ public class JsonDao {
     	Map<String, Object> estrutura_super = acessar((String)estrutura.get(_super));
     	
     	//remover do pai
-    	if(estrutura.get(type) == ATTRIBUTE_TYPE){
+    	if(((String)estrutura.get(type)).trim().equals(ATTRIBUTE_TYPE)){
     		estrutura_super.put(value, "");
     	}else{
     		for(int i = 0; i < ((List) estrutura_super.get(value)).size(); i++){
@@ -320,20 +319,21 @@ public class JsonDao {
     
     public boolean salvar(Map<String, Object> val, String caminhoDestino, boolean force) throws IOException, JSONException{
     	boolean result = false;
-    	
+        System.out.println("aki1");
     	//chaves
         String version = "version";
         String _super = "super";
         String label = "label";
         String type = "type";
         String value = "value";
-    	
+        System.out.println("aki");
     	String[] passosDestino = caminhoDestino.split(DEFAULT_SEP);
     	String caminho = passosDestino[0];
     	for(int i = 0; i < passosDestino.length && isExist(caminho); i++){
     		caminho = caminho + DEFAULT_SEP + passosDestino[i];
     	}
-    	// se o caminho obtido for igual ao caminhoDestino
+        System.out.println("aki2");
+        // se o caminho obtido for igual ao caminhoDestino
     	// entao já existe...
     	// senao devemos construir cada estrutura até que o caminhoDestino passe a existir.
     	if(caminho.trim().equalsIgnoreCase(caminhoDestino)){
@@ -358,12 +358,12 @@ public class JsonDao {
         			
         		}else{
         			// construir um novo elemento para o value do caminho do pai do nosso destino.
-        			Map<String, Object> elemento_super = createElementStruct(passosDestino[passo-1], ((Integer)val.get(type)), null);
+        			Map<String, Object> elemento_super = createElementStruct(passosDestino[passo-1], (String)val.get(type), null);
         			// caso seja um atributo, seu pai já conhece seu valor
-        			if(((Integer)val.get(type)) == ATTRIBUTE_TYPE){
+        			if(((String)val.get(type)).trim().equals(ATTRIBUTE_TYPE)){
         				elemento_super.put(value, val.get(value));
         			}
-        			val = createStruct(CURRENT_VERSION, caminhoDestino, (String)val.get(label), (Integer) val.get(type), val.get(value));
+        			val = createStruct(CURRENT_VERSION, caminhoDestino, (String)val.get(label), (String) val.get(type), val.get(value));
         			
         			result = push(val, caminhoDestino) && push(elemento_super, caminho); 
         			
@@ -378,14 +378,14 @@ public class JsonDao {
     // Private Methods
     // 1) Métodos de acesso a arquivos
     private JSONObject open(String file) throws IOException, IllegalArgumentException, JSONException {
-    	String filePathString = file+ FORMAT_JSON;
+    	String filePathString = file + FORMAT_JSON;
     	File f = new File(filePathString);
 
     	if(!f.exists()){
     		filePathString = DIR_DB + file + FORMAT_JSON;
     		f = new File(filePathString);
     	}
-        System.out.println(filePathString);
+        
         if (f.exists() && !f.isDirectory()) {
         	
         	String jsonText = new Scanner(f)
@@ -439,12 +439,12 @@ public class JsonDao {
         return val instanceof JSONArray;
     }
 
-    private static boolean isObject(Object val) {
-        return val instanceof JSONObject;
+    private static boolean isObject(Object val) throws IllegalArgumentException, JSONException {    	
+    	return val instanceof JSONObject && !isArray(val) && getAttribute("type", (JSONObject)val).trim().equalsIgnoreCase(OBJECT_TYPE);
     }
 
-    private static boolean isValidType(Integer type) {
-        return (type == ATTRIBUTE_TYPE || type == ARRAY_TYPE || type == OBJECT_TYPE);
+    private static boolean isValidType(String type) {
+        return (type.trim().equals(ATTRIBUTE_TYPE) || type.trim().equals(ARRAY_TYPE) || type.trim().equals(OBJECT_TYPE));
     }
     
     private static boolean isStruct(Map<String, Object> val){
@@ -488,7 +488,7 @@ public class JsonDao {
      *</pre>
      * @return
      */
-    private static Map<String, Object> newStruct() {
+    public static Map<String, Object> newStruct() {
         // version, super, label, type, value
         return JsonDao.createStruct(CURRENT_VERSION, DEFAULT_ROOT, "", ATTRIBUTE_TYPE, null);
     }
@@ -507,7 +507,7 @@ public class JsonDao {
      * @param value
      * @return
      */
-    private static Map<String, Object> createStruct(String version, String _super, String label, Integer type, Object value) {
+    public static Map<String, Object> createStruct(String version, String _super, String label, String type, Object value) {
         Map<String, Object> result = createElementStruct(label, type, value);
         result.put("version", version);
         result.put("super", _super);
@@ -515,7 +515,7 @@ public class JsonDao {
         return result;
     }
 
-    private static Map<String, Object> createElementStruct(String label, Integer type, Object value) {
+    public static Map<String, Object> createElementStruct(String label, String type, Object value) {
         Map<String, Object> result = new HashMap<String, Object>();
         result.put("label", label);
         if (!isValidType(type)) {
@@ -534,7 +534,7 @@ public class JsonDao {
         String value = "value";
         
         String result = "\""+value + "\": ";
-    	if((Integer) val.get(type) == ATTRIBUTE_TYPE){
+    	if(((String)val.get(type)).trim().equals(ATTRIBUTE_TYPE)){
     		result += "\"" + (String) val.get(value) + "\"";
     	}else{
     		result += "[";
@@ -552,7 +552,14 @@ public class JsonDao {
     	}
     	return result;
     }
-    private static List<Object> getValue(JSONObject val) throws IllegalArgumentException, JSONException {
+    /**
+     * Usado apenas para os casos em que o Type é Object ou Array
+     * @param val
+     * @return
+     * @throws IllegalArgumentException
+     * @throws JSONException
+     */
+    private static Object getValue(JSONObject val) throws IllegalArgumentException, JSONException {
         List<Object> result = new ArrayList<Object>();
         String label = "label";
         String type = "type";
@@ -563,24 +570,25 @@ public class JsonDao {
         }
         
         JSONArray array = (JSONArray) val.get(value);
+        
         for (int i = 0; i < array.length(); i++) {
+        	JSONObject var = (JSONObject) array.get(i);
+        	String labelVar = getAttribute(label, var);
+        	String typeVar = getAttribute(type, var);
+        	String valueVar;
             /*  there are three possibles cases:
                 1) an absolute value
                 2) an array element
                 3) an object element
              */
-            //in the third case
-            if (isObject(array.get(i))) {
-                
-                JSONObject var = (JSONObject) array.get(i);
-                result.add(createElementStruct((String)var.get(label), OBJECT_TYPE, null));
-                // in the second case
-            } else if (isArray(array.get(i))) {
-                result.add(new ArrayList<Object>());
+            //in the third and second case
+            if (isArray(array.get(i)) || isObject(array.get(i))) {
+            	valueVar = null;
                 // first case
             } else {
-                result.add((String)array.get(i));
+            	valueVar = getAttribute(value, var);
             }
+            result.add(createElementStruct(labelVar, typeVar, valueVar));
 
         }
         return result;
@@ -591,12 +599,15 @@ public class JsonDao {
     }
     private static String getAttribute(String key, JSONObject source) throws IllegalArgumentException, JSONException {
         String result = "";
-
+        
         Object value = source.get(key);
         if (isArray(value) || isObject(value)) {
             throw new IllegalArgumentException("Não é um atributo");
         }
 
-        return (String) result;
+        if(value == null || source.isNull(key)){
+        	value = "null";
+        }
+        return result = (String) value;
     }
 }

@@ -17,7 +17,7 @@ public class Main2Activity  extends AppCompatActivity {
 
     @Override
     public void onBackPressed(){
-        Intent i = new Intent();
+        Intent i = getIntent();
         setResult(2,i);
         super.onBackPressed();
     }

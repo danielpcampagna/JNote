@@ -15,6 +15,9 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import org.json.JSONException;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -130,7 +133,9 @@ public class MainActivity extends AppCompatActivity {
         return(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> av, View v, int position, long id){
-                if(lv.getItemAtPosition(position).toString().equals("//SEM CONTEÚDO//")) {
+                System.out.println("entrou aki");
+                if(!lv.getItemAtPosition(position).toString().equals("//SEM CONTEÚDO//")) {
+                    System.out.println("entrou aki1");
                     if (Integer.parseInt(((Map<String, Object>) values.get(position)).get("type").toString()) == 1) {
                         Intent i = new Intent(context, ViewActivity.class);
                         String[] str = new String[2];
@@ -147,6 +152,7 @@ public class MainActivity extends AppCompatActivity {
                             } catch (Exception e) {
                                 System.out.println(e);
                             }
+                            System.out.println(">>>> "+way[0]);
                         } else {
                             try {
                                 way[0] = (((Map<String, Object>) values.get(position)).get("super").toString() + "." + ((Map<String, Object>) values.get(position)).get("label").toString());
@@ -155,6 +161,9 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                         way[1] = (((Map<String, Object>) values.get(position)).get("type").toString());
+                        System.out.println(way[0]);
+                        System.out.println(way[1]);
+
                         i.putExtra("WAY", way);
                         startActivityForResult(i, 2);
                     }
@@ -180,6 +189,10 @@ public class MainActivity extends AppCompatActivity {
                     break;
             }
             Map<String, Object> val;
+            System.out.println(res.length);
+            System.out.println(res[0]);
+            System.out.println(res[1]);
+            System.out.println(res[2]);
             if(edit==1){
                 val = dao.createStruct("1.0",content.get("super").toString(),res[0],res[2],values.get(positionValue));
             }else{
@@ -190,16 +203,26 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) {
                 System.out.println(e);
             }
-
+            System.out.println("passou");
             setAuxStringList();
             adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, auxStringList);
             lv.setAdapter(adapter);
 
         } else if(resultCode == 2){
+            System.out.println(">>>>>>>>>>  <<<<<<<<");
+            String[]res = data.getStringArrayExtra("WAY");
+            System.out.println("oi: " + res[0]);
+            try {
+                content = dao.acessar(res[0]);
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+            values = (List<Object>) content.get("value");
             setAuxStringList();
             adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, auxStringList);
             lv.setAdapter(adapter);
         }
+        System.out.println(">>>>>>>>>>  ");
         super.onActivityResult(requestCode, resultCode, data);
     }
 

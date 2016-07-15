@@ -15,7 +15,7 @@ public class Configuration {
 	public final static String PREFIXE_DB 		= Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
 	public final static String DEVELOPMENT_DB 	= PREFIXE_DB + "development/";
 	public final static String TEST_DB 			= PREFIXE_DB + "test/";
-	public final static String PRODUCTION_DB 	= PREFIXE_DB + "/production/";
+	public final static String PRODUCTION_DB 		= PREFIXE_DB + "/production/";
 //	private static String DEVELOPMENT_DB 	= PREFIXE_DB + "development/";
 //	private static String TEST_DB 			= PREFIXE_DB + "test/";
 //	private static String PRODUCTION_DB 	= PREFIXE_DB + "production/";
@@ -61,7 +61,7 @@ public class Configuration {
 		}else if(env == PRODUCTION){
 			this.setDbUse(PRODUCTION_DB);
 		}else{
-			throw new IllegalArgumentException(this.getClass().toString() + ".environment inválido!");
+			throw new IllegalArgumentException(this.getClass().toString() + ".enviroment inválido!");
 		}
 	}
 	
