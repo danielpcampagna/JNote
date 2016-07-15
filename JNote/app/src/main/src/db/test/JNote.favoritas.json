@@ -2,6 +2,20 @@
 	'version': '1.0',
 	'super':'JNote',
 	'label': "favoritas",
-	'type': 2,
-	'value': ["uva","maçã","banana"]
+	'type': "2",
+	'value': [
+		{
+			label: "uva",
+			type: "1",
+			value: "uva"
+		},{
+			label: "maçã",
+			type: "1",
+			value: "maçã"
+		},{
+			label: "banana",
+			type: "1",
+			value: "banana"
+		}
+	]
 }

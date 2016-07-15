@@ -52,7 +52,7 @@ public class JsonDaoTest {
         oracle.put("super", "");
         oracle.put("label", "JNote");
         oracle.put("version", "1.0");
-        oracle.put("type", 1);
+        oracle.put("type", "3");
         oracleValueNome.put("label", "nome");
         oracleValueNome.put("type", "1");
         oracleValueNome.put("value", "João");
@@ -76,6 +76,21 @@ public class JsonDaoTest {
         result_test = jsonObject.acessar("JNote", "");
         
         System.out.println(result_test.keySet());
+        
+        System.out.println("super: "+result_test.get("super"));
+        System.out.println("super: "+oracle.get("super"));
+        
+        System.out.println("value: "+result_test.get("value"));
+        System.out.println("value: "+oracle.get("value"));
+        
+        System.out.println("label: "+result_test.get("label"));
+        System.out.println("label: "+oracle.get("label"));
+        
+        System.out.println("type: "+result_test.get("type"));
+        System.out.println("type: "+oracle.get("type"));
+        
+        System.out.println("version: "+result_test.get("version"));
+        System.out.println("version: "+oracle.get("version"));
 	}
 
 }

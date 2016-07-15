@@ -2,23 +2,23 @@
 	'version': '1.0',
 	'super': '',
 	'label': "JNote",
-	'type': 2,
+	'type': "2",
 	'value': [
 	  {
 	    'label': "nome",
-			'type': 1,
+			'type': "1",
 			'value': "João"
 		},{
 			'label': "idade",
-			'type': 1,
+			'type': "1",
 			'value': "16"
 		},{
 			'label': "favoritas",
-			'type': 2,
+			'type': "2",
 			'value': null
 		},{
 			'label': "educação",
-			'type': 3,
+			'type': "3",
 			'value': null
 		}
 	]
