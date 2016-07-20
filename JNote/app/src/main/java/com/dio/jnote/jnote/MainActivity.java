@@ -48,45 +48,47 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         String[]permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE};
-        PermissionUtils.validate(this,0,permissions);
+        if(PermissionUtils.validate(this,0,permissions)) {
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+            Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+            setSupportActionBar(toolbar);
 
-        dao = new JsonDao();
+            dao = new JsonDao();
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent i = new Intent(MainActivity.this,EditActivity.class);
-                startActivityForResult(i,1);
-            }
-        });
+            FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent i = new Intent(MainActivity.this, EditActivity.class);
+                    startActivityForResult(i, 1);
+                }
+            });
 
-        lv = (ListView)findViewById(R.id.listView);
+            lv = (ListView) findViewById(R.id.listView);
 
-        try{
-            Intent i = getIntent();
-            String[] aux = i.getStringArrayExtra("WAY");
-            content = dao.acessar(aux[0]);
-            values = (List<Object>) content.get("value");
-            setAuxStringList();
-            adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, auxStringList);
-        }catch (Exception e) {
             try {
-                content = dao.acessar("JNote");
+                Intent i = getIntent();
+                String[] aux = i.getStringArrayExtra("WAY");
+                content = dao.acessar(aux[0]);
                 values = (List<Object>) content.get("value");
                 setAuxStringList();
                 adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, auxStringList);
-            } catch (Exception ee) {
-                adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, new String[]{"//SEM CONTEÚDO//"});
+            } catch (Exception e) {
+                try {
+                    content = dao.acessar("JNote");
+                    values = (List<Object>) content.get("value");
+                    setAuxStringList();
+                    adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, auxStringList);
+                } catch (Exception ee) {
+                    adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, new String[]{"//SEM CONTEÚDO//"});
+                }
             }
-        }
 
-        lv.setAdapter(adapter);
-        lv.setOnItemClickListener(viewContent(this));
-        registerForContextMenu(lv);
+            lv.setAdapter(adapter);
+            lv.setOnItemClickListener(viewContent(this));
+            registerForContextMenu(lv);
+        }else
+            finish();
     }
 
     @Override
@@ -113,7 +115,6 @@ public class MainActivity extends AppCompatActivity {
         }
         else if(item.getTitle()=="Remover") {
             try {
-                System.out.println("bafkla"+content.get("label").toString());
                 if(content.get("label").toString().equals("JNote"))
                     dao.remover("JNote."+auxValue.get("label").toString());
                 else
@@ -133,9 +134,7 @@ public class MainActivity extends AppCompatActivity {
         return(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> av, View v, int position, long id){
-                System.out.println("entrou aki");
                 if(!lv.getItemAtPosition(position).toString().equals("//SEM CONTEÚDO//")) {
-                    System.out.println("entrou aki1");
                     if (Integer.parseInt(((Map<String, Object>) values.get(position)).get("type").toString()) == 1) {
                         Intent i = new Intent(context, ViewActivity.class);
                         String[] str = new String[2];
@@ -152,7 +151,6 @@ public class MainActivity extends AppCompatActivity {
                             } catch (Exception e) {
                                 System.out.println(e);
                             }
-                            System.out.println(">>>> "+way[0]);
                         } else {
                             try {
                                 way[0] = (((Map<String, Object>) values.get(position)).get("super").toString() + "." + ((Map<String, Object>) values.get(position)).get("label").toString());
@@ -161,11 +159,9 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                         way[1] = (((Map<String, Object>) values.get(position)).get("type").toString());
-                        System.out.println(way[0]);
-                        System.out.println(way[1]);
-
                         i.putExtra("WAY", way);
-                        startActivityForResult(i, 2);
+                        //startActivityForResult(i, 2);
+                        startActivity(i);
                     }
                 }
             }
@@ -189,29 +185,25 @@ public class MainActivity extends AppCompatActivity {
                     break;
             }
             Map<String, Object> val;
-            System.out.println(res.length);
-            System.out.println(res[0]);
-            System.out.println(res[1]);
-            System.out.println(res[2]);
             if(edit==1){
                 val = dao.createStruct("1.0",content.get("super").toString(),res[0],res[2],values.get(positionValue));
             }else{
                 val = dao.createStruct("1.0",content.get("super").toString(),res[0],res[2],res[1]);
             }
             try {
-                dao.salvar(val,content.get("super").toString()+"."+res[0]);
+                if(content.get("label").equals("JNote"))
+                    dao.salvar(val,content.get("label").toString()+"."+res[0]);
+                else
+                    dao.salvar(val,content.get("super").toString()+"."+res[0]);
             } catch (Exception e) {
                 System.out.println(e);
             }
-            System.out.println("passou");
             setAuxStringList();
             adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, auxStringList);
             lv.setAdapter(adapter);
 
-        } else if(resultCode == 2){
-            System.out.println(">>>>>>>>>>  <<<<<<<<");
+        }/* else if(resultCode == 2){
             String[]res = data.getStringArrayExtra("WAY");
-            System.out.println("oi: " + res[0]);
             try {
                 content = dao.acessar(res[0]);
             } catch (Exception e) {
@@ -221,8 +213,7 @@ public class MainActivity extends AppCompatActivity {
             setAuxStringList();
             adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, auxStringList);
             lv.setAdapter(adapter);
-        }
-        System.out.println(">>>>>>>>>>  ");
+        }*/
         super.onActivityResult(requestCode, resultCode, data);
     }
 

@@ -18,7 +18,10 @@ public class Main2Activity  extends AppCompatActivity {
     @Override
     public void onBackPressed(){
         Intent i = getIntent();
-        setResult(2,i);
+        Intent i2 = new Intent(this,MainActivity.class);
+        i2.putExtra("WAY",i.getStringArrayExtra("WAY"));
+        //setResult(2,i);
+        startActivity(i2);
         super.onBackPressed();
     }
 }

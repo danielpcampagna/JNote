@@ -35,7 +35,7 @@ public class JsonDao {
 	
     
     private final static String FORMAT_JSON = ".json";
-    private final static String DEFAULT_SEP = ".";
+    //private final static String DEFAULT_SEP = "\\.";
     // Jogar para um arquivo de configuração
     private final static String CURRENT_VERSION = "1.0";
     private final static String DEFAULT_ROOT = "JNote";
@@ -53,7 +53,7 @@ public class JsonDao {
     public Map<String, Object> acessar(String caminho, String chave) throws IOException, IllegalArgumentException, JSONException {
     	
         if(!chave.trim().equals("")){
-            caminho = caminho + DEFAULT_SEP + chave;
+            caminho = caminho + "."/*DEFAULT_SEP*/ + chave;
         }
         return acessar(caminho);
     }
@@ -244,12 +244,12 @@ public class JsonDao {
     	
         ////////// Buscar a maior semelhança entre os dois caminhos (origem e destino)
         // através de semelhança sintática
-        String[] passosOrigem = caminhoOrigem.split(DEFAULT_SEP);
-        String[] passosDestino = caminhoDestino.split(DEFAULT_SEP);
+        String[] passosOrigem = caminhoOrigem.split("\\."/*DEFAULT_SEP*/);
+        String[] passosDestino = caminhoDestino.split("\\."/*DEFAULT_SEP*/);
         String caminhoComum = "";
         for(int i = 0; i < passosOrigem.length && i < passosDestino.length; i++){
         	if(passosOrigem[i].trim().equalsIgnoreCase(passosDestino[i].trim())){
-        		caminhoComum = caminhoComum + DEFAULT_SEP + passosOrigem[i];
+        		caminhoComum = caminhoComum + "."/*DEFAULT_SEP*/ + passosOrigem[i];
         	}
         }
         // Caso o caminhoComum for igual ao caminhoDestino
@@ -319,20 +319,17 @@ public class JsonDao {
     
     public boolean salvar(Map<String, Object> val, String caminhoDestino, boolean force) throws IOException, JSONException{
     	boolean result = false;
-        System.out.println("aki1");
     	//chaves
         String version = "version";
         String _super = "super";
         String label = "label";
         String type = "type";
         String value = "value";
-        System.out.println("aki");
-    	String[] passosDestino = caminhoDestino.split(DEFAULT_SEP);
+    	String[] passosDestino = caminhoDestino.split("\\."/*DEFAULT_SEP*/);
     	String caminho = passosDestino[0];
     	for(int i = 0; i < passosDestino.length && isExist(caminho); i++){
-    		caminho = caminho + DEFAULT_SEP + passosDestino[i];
+    		caminho = caminho + "."/*DEFAULT_SEP*/ + passosDestino[i];
     	}
-        System.out.println("aki2");
         // se o caminho obtido for igual ao caminhoDestino
     	// entao já existe...
     	// senao devemos construir cada estrutura até que o caminhoDestino passe a existir.
@@ -344,7 +341,7 @@ public class JsonDao {
     			return push(val, caminhoDestino);
     		}
     	}else{
-        	int passo = caminho.split(DEFAULT_SEP).length;
+        	int passo = caminho.split("\\."/*DEFAULT_SEP*/).length;
         	while(!isExist(caminhoDestino)){
         		// se o passo < passoDestino - 1
         		// então temos que construir este element e dar mais um passo
@@ -368,7 +365,7 @@ public class JsonDao {
         			result = push(val, caminhoDestino) && push(elemento_super, caminho); 
         			
         		}
-        		caminho = caminho + DEFAULT_SEP + passosDestino[passo];
+        		caminho = caminho + "."/*DEFAULT_SEP*/ + passosDestino[passo];
     			passo++;
         	}
     	}

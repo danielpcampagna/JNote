@@ -19,6 +19,7 @@ public class EditActivity extends AppCompatActivity {
     private String[] values;
     private EditText edt;
     private EditText edt2;
+    private boolean addClicked =false;
     private int edit = 0;
 
     @Override
@@ -29,9 +30,6 @@ public class EditActivity extends AppCompatActivity {
         String[] content = new String[]{"Dado simples","Dado composto","Lista"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this,android.R.layout.simple_list_item_1,content);
 
-        Intent i = getIntent();
-        values = i.getStringArrayExtra("VALUESVECTOR");
-
         sp = (Spinner) findViewById(R.id.spinner);
         sp.setAdapter(adapter);
         sp.setOnItemSelectedListener(redefineLayout(this));
@@ -39,47 +37,28 @@ public class EditActivity extends AppCompatActivity {
         edt = (EditText) findViewById(R.id.editText);
         edt2 = (EditText) findViewById(R.id.editText2);
 
-        if(values != null){
+        Button bt = (Button) findViewById(R.id.button);
+        bt.setOnClickListener(addData());
+
+        Intent i = getIntent();
+        values = i.getStringArrayExtra("VALUESVECTOR");
+        if(values!=null) {
             edit = 1;
             edt.setText(values[0]);
-            if(values[1] == "1"){
+            if (values[1] == "1") {
                 edt2.setText(values[2]);
             }
             sp.setSelection(Integer.parseInt(values[1]) - 1);
         }
 
-        Button bt = (Button) findViewById(R.id.button);
-        bt.setOnClickListener(addData());
     }
 
     private View.OnClickListener addData() {
         return(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                onBackPressed();/*
-                Intent i = new Intent();
-                String[] str;
-                EditText edtaux = edt;
-                EditText edtaux2 = edt;
-
-                if (sp.getSelectedItem().toString().equals("Dado simples")) {
-                    if ((!edtaux.getText().toString().equals("")) && (!edtaux2.getText().toString().equals(""))) {
-                        str = new String[]{edtaux.getText().toString(), edtaux2.getText().toString(), sp.getSelectedItem().toString()};
-                        i.putExtra("VALUE", str);
-                        i.putExtra("EDIT" , edit);
-                        setResult(1, i);
-                    }else
-                        setResult(0);
-                }
-                else {
-                    if (!edtaux.getText().toString().equals("")) {
-                        str = new String[]{edtaux.getText().toString(), " " , sp.getSelectedItem().toString()};
-                        i.putExtra("VALUE", str);
-                        i.putExtra("EDIT" , edit);
-                        setResult(1, i);
-                    }else
-                        setResult(0);
-                }*/
+                addClicked =true;
+                onBackPressed();
             }
         });
     }
@@ -87,13 +66,13 @@ public class EditActivity extends AppCompatActivity {
     @Override //REMOVER ESTA FUNÇÃO.
     public void onBackPressed(){
         Intent i = new Intent();
-        String[] str;
-        EditText edtaux = edt;
-        EditText edtaux2 = edt;
+        String[] str = new String[]{};
+        //EditText edtaux = edt;
+        //EditText edtaux2 = edt;
 
         if (sp.getSelectedItem().toString().equals("Dado simples")) {
-            if ((!edtaux.getText().toString().equals("")) && (!edtaux2.getText().toString().equals(""))) {
-                str = new String[]{edtaux.getText().toString(), edtaux2.getText().toString(), sp.getSelectedItem().toString()};
+            if ((!edt.getText().toString().equals("")) && (!edt2.getText().toString().equals(""))) {
+                str = new String[]{edt.getText().toString(), edt2.getText().toString(), sp.getSelectedItem().toString()};
                 i.putExtra("VALUE", str);
                 i.putExtra("EDIT" , edit);
                 setResult(1, i);
@@ -101,13 +80,18 @@ public class EditActivity extends AppCompatActivity {
                 setResult(0);
         }
         else {
-            if (!edtaux.getText().toString().equals("")) {
-                str = new String[]{edtaux.getText().toString(), " " , sp.getSelectedItem().toString()};
+            if (!edt.getText().toString().equals("")) {
+                str = new String[]{edt.getText().toString(), " " , sp.getSelectedItem().toString()};
                 i.putExtra("VALUE", str);
                 i.putExtra("EDIT" , edit);
                 setResult(1, i);
             }else
                 setResult(0);
+        }
+        if(!addClicked){
+            i = new Intent();
+            setResult(0);
+            this.finish();
         }
         super.onBackPressed();
     }
