@@ -66,21 +66,31 @@ public class MainActivity extends AppCompatActivity {
 
             lv = (ListView) findViewById(R.id.listView);
 
-            try {
-                Intent i = getIntent();
-                String[] aux = i.getStringArrayExtra("WAY");
-                content = dao.acessar(aux[0]);
-                values = (List<Object>) content.get("value");
-                setAuxStringList();
-                adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, auxStringList);
-            } catch (Exception e) {
+            Intent i = getIntent();
+            String[] aux = i.getStringArrayExtra("WAY");
+            if(aux!=null){
+                try {
+                    content = dao.acessar(aux[0]);
+                    values = (List<Object>) content.get("value");
+                    setAuxStringList();
+                    if(values.size()!=0)
+                        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, auxStringList);
+                    else
+                        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, new String[]{"//SEM CONTEÚDO//"});
+                }catch (Exception e){
+                    adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, new String[]{e.toString()});//"//SEM CONTEÚDO//"});
+                }
+            } else{
                 try {
                     content = dao.acessar("JNote");
                     values = (List<Object>) content.get("value");
                     setAuxStringList();
-                    adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, auxStringList);
-                } catch (Exception ee) {
-                    adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, new String[]{"//SEM CONTEÚDO//"});
+                    if(values.size()!=0)
+                        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, auxStringList);
+                    else
+                        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, new String[]{"//SEM CONTEÚDO//"});
+                }catch(Exception e){
+                    adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, new String[]{e.toString()});//"//SEM CONTEÚDO//"});
                 }
             }
 
@@ -116,9 +126,9 @@ public class MainActivity extends AppCompatActivity {
         else if(item.getTitle()=="Remover") {
             try {
                 if(content.get("label").toString().equals("JNote"))
-                    dao.remover("JNote."+auxValue.get("label").toString());
+                    dao.remover("JNote."+auxValue.get("label").toString(),true);
                 else
-                    dao.remover(content.get("super").toString()+"."+auxValue.get("label").toString());
+                    dao.remover(content.get("super").toString()+"."+auxValue.get("label").toString(),true);
             } catch (Exception e) {
                 System.out.println(e);
             }
@@ -192,9 +202,9 @@ public class MainActivity extends AppCompatActivity {
             }
             try {
                 if(content.get("label").equals("JNote"))
-                    dao.salvar(val,content.get("label").toString()+"."+res[0]);
+                    dao.salvar(val,content.get("label").toString()+"."+res[0],true);
                 else
-                    dao.salvar(val,content.get("super").toString()+"."+res[0]);
+                    dao.salvar(val,content.get("super").toString()+"."+res[0],true);
             } catch (Exception e) {
                 System.out.println(e);
             }

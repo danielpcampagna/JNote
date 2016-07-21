@@ -63,7 +63,7 @@ public class EditActivity extends AppCompatActivity {
         });
     }
 
-    @Override //REMOVER ESTA FUNÇÃO.
+    @Override
     public void onBackPressed(){
         Intent i = new Intent();
         String[] str = new String[]{};

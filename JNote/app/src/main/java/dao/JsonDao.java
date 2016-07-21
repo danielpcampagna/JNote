@@ -327,7 +327,7 @@ public class JsonDao {
         String value = "value";
     	String[] passosDestino = caminhoDestino.split("\\."/*DEFAULT_SEP*/);
     	String caminho = passosDestino[0];
-    	for(int i = 0; i < passosDestino.length && isExist(caminho); i++){
+    	for(int i = 1; i < passosDestino.length && isExist(caminho); i++){
     		caminho = caminho + "."/*DEFAULT_SEP*/ + passosDestino[i];
     	}
         // se o caminho obtido for igual ao caminhoDestino
@@ -346,7 +346,7 @@ public class JsonDao {
         		// se o passo < passoDestino - 1
         		// então temos que construir este element e dar mais um passo
         		// senão estamos acessando o pai do passo destino, devemos...
-        		if(passo < passosDestino.length - 1){
+        		if(passo-1 < passosDestino.length - 1){
         			// construir um novo elemento para o value do caminho do passo
         			Map<String, Object> elemento_super = createElementStruct(passosDestino[passo-1], OBJECT_TYPE , null);
         			// construir uma nova estrutura para o passo + 1
@@ -365,7 +365,7 @@ public class JsonDao {
         			result = push(val, caminhoDestino) && push(elemento_super, caminho); 
         			
         		}
-        		caminho = caminho + "."/*DEFAULT_SEP*/ + passosDestino[passo];
+        		caminho = caminho + "."/*DEFAULT_SEP*/ + passosDestino[passo-1];
     			passo++;
         	}
     	}
@@ -414,7 +414,7 @@ public class JsonDao {
     	text += getJSFormatedAttribute(label, val);
 		text += getJSFormatedAttribute(type, val);
 		text += getValue(val);
-    	text = "}";
+    	text += "}";
     	
     	File f = new File(DIR_DB + file + FORMAT_JSON);
     	f.createNewFile();
