@@ -357,11 +357,24 @@ public class JsonDao {
         		// senão estamos acessando o pai do passo destino, devemos...
         		if(passo < passosDestino.length){
         			// construir um novo elemento para o value do caminho do passo
-        			Map<String, Object> elemento_super = acessar(passosDestino[passo-1]);
-                    if(((String)val.get(type)).trim().equals(ATTRIBUTE_TYPE)){
-                        elemento_super.put(value,createElementStruct(passosDestino[passo], (String)val.get(type), val.get(value)));
-                    }else
-                        elemento_super.put(value,createElementStruct(passosDestino[passo], (String)val.get(type), null));
+        			Map<String, Object> elemento_super = acessar(auxcam);
+                    ArrayList<Object> auxElemento = (ArrayList<Object>) elemento_super.get(value);
+                    if(auxElemento.size()!=0){
+                        if(((String)val.get(type)).trim().equals(ATTRIBUTE_TYPE)){
+                            auxElemento.add(createElementStruct(passosDestino[passo], (String)val.get(type), val.get(value)));
+                            elemento_super.put(value,auxElemento);
+                        }else {
+                            auxElemento.add(createElementStruct(passosDestino[passo], (String) val.get(type), null));
+                            elemento_super.put(value, auxElemento);
+                        }
+                    }else{
+                        if(((String)val.get(type)).trim().equals(ATTRIBUTE_TYPE)){
+                            elemento_super.put(value,createElementStruct(passosDestino[passo], (String)val.get(type), val.get(value)));
+                        }else {
+                            elemento_super.put(value,createElementStruct(passosDestino[passo], (String) val.get(type), null));
+                        }
+                    }
+
                             //createElementStruct(passosDestino[passo-1], OBJECT_TYPE , null);
                     // construir uma nova estrutura para o passo + 1
         			//Map<String, Object> estrutura = createStruct(CURRENT_VERSION, caminho, passosDestino[passo], OBJECT_TYPE, null);
@@ -374,12 +387,12 @@ public class JsonDao {
         			//if(((String)val.get(type)).trim().equals(ATTRIBUTE_TYPE)){
         				//elemento_super.put(value, val.get(value));
         			//}
-        			val = createStruct(CURRENT_VERSION, passosDestino[passo-1], (String)val.get(label), (String) val.get(type), val.get(value));
+        			val = createStruct(CURRENT_VERSION, passosDestino[passosDestino.length-2], (String)val.get(label), (String) val.get(type), val.get(value));
         			
         			result = push(val, caminhoDestino);// && push(elemento_super, auxcam);
         			
         		}
-                //auxcam = auxcam + "." + passosDestino[passo];
+                auxcam = auxcam + "." + passosDestino[passo];
     			passo++;
         	}
     	}
@@ -552,24 +565,44 @@ public class JsonDao {
         
         String result = "\""+value + "\": ";
     	if(((String)val.get(type)).trim().equals(ATTRIBUTE_TYPE)){
-    		result += "\"" + (String) val.get(value) + "\"";
+            //Map<String, Object> aux = (Map<String, Object>) val.get(value);
+    		result += "\"" + val.get(value).toString() + "\"";
     	}else{
     		result += "[";
-            Map<String,Object> values = (Map<String,Object>)(val.get(value));
-    		for(int i = 0; i < values.size();i+=3){
-    			result += "{";
-    			result += getJSFormatedAttribute(label, values)+",";
-    			result += getJSFormatedAttribute(type, values);
-                if(values.get(type).equals(ATTRIBUTE_TYPE))
-    			    result += ","+getJSFormatedAttribute(value,values);
-                else
-                    result += getJSFormatedAttribute(value,null);
-    			result += "}";
-    			if(i < values.size() - 3){
-    				result += ",";
-    			}
-    		}
-    		result += "]";
+            try {
+                ArrayList<Object> values = (ArrayList<Object>) val.get(value);
+                for (int i = 0; i < values.size(); i++) {
+                    Map<String, Object> atual = (Map<String, Object>) values.get(i);
+                    result += "{";
+                    result += getJSFormatedAttribute(label, atual) + ",";
+                    result += getJSFormatedAttribute(type, atual);
+                    if (atual.get(type).equals(ATTRIBUTE_TYPE))
+                        result += "," + getJSFormatedAttribute(value, atual);
+                    else
+                        result += getJSFormatedAttribute(value, null);
+                    result += "}";
+                    if (i < values.size() - 1) {
+                        result += ",";
+                    }
+                }
+                result += "]";
+            }catch (Exception e){
+                Map<String, Object> values = (Map<String, Object>) val.get(value);
+                for (int i = 0; i < values.size(); i+=3) {
+                    result += "{";
+                    result += getJSFormatedAttribute(label, values) + ",";
+                    result += getJSFormatedAttribute(type, values);
+                    if (values.get(type).equals(ATTRIBUTE_TYPE))
+                        result += "," + getJSFormatedAttribute(value, values);
+                    else
+                        result += getJSFormatedAttribute(value, null);
+                    result += "}";
+                    if (i < values.size() - 3) {
+                        result += ",";
+                    }
+                }
+                result += "]";
+            }
     	}
     	return result;
     }
