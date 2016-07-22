@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">JNote</string>
+    <string name="action_settings">Salvar em arquivo</string>
+    <string name="title_splash">JNote</string>
+</resources>

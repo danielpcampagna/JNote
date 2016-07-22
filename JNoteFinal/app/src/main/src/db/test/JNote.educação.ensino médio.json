@@ -1,0 +1,21 @@
+{
+	'version': '1.0',
+	'super':'JNote.educacao',
+	'label': "ensino médio",
+	'type': 3,
+	'value': [
+		{
+			'labe': "nome",
+			'type': 1,
+			'value': "colégio X"
+		},{
+			'label': "inicio",
+			'type': 1,
+			'value': "2009"
+		},{
+			'label': "fim",
+			'type': 1,
+			'value': "2012"
+		}
+	]
+}
