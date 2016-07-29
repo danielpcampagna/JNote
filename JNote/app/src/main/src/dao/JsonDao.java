@@ -3,6 +3,7 @@ package dao;
 //import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.PrintWriter;
 //import java.io.FileInputStream;
 //import java.io.FileReader;
 import java.io.IOException;
@@ -16,6 +17,7 @@ import java.util.Scanner;
 
 import junit.runner.Version;
 
+import org.hamcrest.core.IsInstanceOf;
 import org.json.*;
 
 import config.Configuration;
@@ -181,9 +183,7 @@ public class JsonDao {
      */
     public Map<String, Object> acessar(String caminho) throws IOException, IllegalArgumentException, JSONException {
     	Map<String, Object> result = newStruct();
-    	
         JSONObject sourceJson = open(caminho);
-
         //chaves
         String version = "version";
         String _super = "super";
@@ -244,8 +244,8 @@ public class JsonDao {
     	
         ////////// Buscar a maior semelhança entre os dois caminhos (origem e destino)
         // através de semelhança sintática
-        String[] passosOrigem = caminhoOrigem.split(DEFAULT_SEP);
-        String[] passosDestino = caminhoDestino.split(DEFAULT_SEP);
+        String[] passosOrigem = caminhoOrigem.split("\\"+DEFAULT_SEP);
+        String[] passosDestino = caminhoDestino.split("\\"+DEFAULT_SEP);
         String caminhoComum = "";
         for(int i = 0; i < passosOrigem.length && i < passosDestino.length; i++){
         	if(passosOrigem[i].trim().equalsIgnoreCase(passosDestino[i].trim())){
@@ -258,16 +258,16 @@ public class JsonDao {
         if(caminhoComum.trim().equalsIgnoreCase(caminhoDestino)){
         	return true;
         }else{
-        	result = salvar(acessar(caminhoOrigem), caminhoDestino, force);
+        	result = salvar(acessar(caminhoOrigem), force);
         	if(result && !copy){
         		result &= remover(caminhoDestino, force);
         	}
         }
     	return result;
     }
-    public boolean salvar(Map<String, Object> val, String caminhoDestino) throws IllegalArgumentException, IOException, JSONException {
-    	if(!salvar(val, caminhoDestino, false)){
-    		throw new IllegalArgumentException("Não foi possível salvar o elemento "+caminhoDestino);
+    public boolean salvar(Map<String, Object> val) throws IllegalArgumentException, IOException, JSONException {
+    	if(!salvar(val, false)){
+    		throw new IllegalArgumentException("Não foi possível salvar o elemento. ");
     	}
     	return true;
     	
@@ -299,25 +299,43 @@ public class JsonDao {
         String type = "type";
         String value = "value";
     	
-    	Map<String, Object> estrutura = acessar(caminho);
+    	Map<String, Object> estrutura = acessar(caminho);    	
     	Map<String, Object> estrutura_super = acessar((String)estrutura.get(_super));
-    	
-    	//remover do pai
+ 
+    	//remover
     	if(((String)estrutura.get(type)).trim().equals(ATTRIBUTE_TYPE)){
-    		estrutura_super.put(value, "");
+    		new File(caminho = (String)estrutura.get(_super)
+    				+ DEFAULT_SEP
+    				+ (String)estrutura.get(label)
+    				+ DEFAULT_SEP).delete();
     	}else{
-    		for(int i = 0; i < ((List) estrutura_super.get(value)).size(); i++){
-    			if(((String)((Map<String, Object>)((List) estrutura_super.get(value)).get(i)).get(label)).trim().equalsIgnoreCase((String) estrutura.get(label))){
-    				((List) estrutura_super.get(value)).remove(i);
-    				result = true;
-    			}
-    		}
+    		// apagar todos os elementos deste item
+        	List<Map<String, Object>> filhos = (List)estrutura.get(value);
+        	for(int i = 0; i < filhos.size(); i++){
+        		String caminhoFilho = (String)estrutura.get(_super)
+        				+ DEFAULT_SEP
+        				+ (String)estrutura.get(label)
+        				+ DEFAULT_SEP
+        				+ filhos.get(i).get(label); 
+        		result &= remover(caminhoFilho);
+        		filhos.remove(i);
+        	}
     	}
-    	result &= salvar(estrutura_super, (String)estrutura.get(_super), force) && new File(caminho).delete(); 
+    	// apagar o elemento, que referencia esta estrutura, no pai
+		for(int i = 0; i < ((List) estrutura_super.get(value)).size(); i++){
+			if(((String)((Map<String, Object>)((List) estrutura_super.get(value)).get(i)).get(label)).trim().equalsIgnoreCase((String) estrutura.get(label))){
+				((List) estrutura_super.get(value)).remove(i);
+				result &= true;
+			}
+		}
+    	
+    	// salva o pai e o arquivo atual
+		
+    	result &= salvar(estrutura_super, force) && new File(DIR_DB+caminho+FORMAT_JSON).delete(); 
     	return result;
     }
     
-    public boolean salvar(Map<String, Object> val, String caminhoDestino, boolean force) throws IOException, JSONException{
+    public boolean salvar(Map<String, Object> val, boolean force) throws IOException, JSONException{
     	boolean result = false;
     	
     	//chaves
@@ -326,49 +344,102 @@ public class JsonDao {
         String label = "label";
         String type = "type";
         String value = "value";
+        
+        String caminhoDestino = val.get(_super) + DEFAULT_SEP + val.get(label);
+        
+    	if(caminhoDestino == null
+    			|| caminhoDestino.trim().equalsIgnoreCase("")
+    			|| !caminhoDestino.trim().startsWith("JNote"))
+    		throw new IOException("Caminho vazio ou inválido (não inicia com JNote)");
+    	String[] passosDestino = caminhoDestino.split("\\"+DEFAULT_SEP);
+    	String caminho = passosDestino[0]; // Todo caminho inicia com JNote
     	
-    	String[] passosDestino = caminhoDestino.split(DEFAULT_SEP);
-    	String caminho = passosDestino[0];
-    	for(int i = 0; i < passosDestino.length && isExist(caminho); i++){
-    		caminho = caminho + DEFAULT_SEP + passosDestino[i];
+    	// pega o úlimo caminho que existe
+    	for(int i = 1; i < passosDestino.length && isExist(caminho); i++){
+    		// concatena apenas se existir
+    		if(isExist(caminho + DEFAULT_SEP + passosDestino[i])){
+    			caminho = caminho + DEFAULT_SEP + passosDestino[i];
+    		}else{
+    			break;
+    		}
     	}
+    	
     	// se o caminho obtido for igual ao caminhoDestino
     	// entao já existe...
     	// senao devemos construir cada estrutura até que o caminhoDestino passe a existir.
     	if(caminho.trim().equalsIgnoreCase(caminhoDestino)){
-    		// caso
     		if(!force){
     			return false;
     		}else{
     			return push(val, caminhoDestino);
     		}
     	}else{
-        	int passo = caminho.split(DEFAULT_SEP).length;
-        	while(!isExist(caminhoDestino)){
-        		// se o passo < passoDestino - 1
+        	int passo = caminho.split("\\"+DEFAULT_SEP).length-1;
+        	while(!isExist(caminhoDestino) && passo+1 < passosDestino.length){
+        		// construir um novo elemento para o value do caminho do passo
+    			Map<String, Object> elemento_super = createElementStruct(passosDestino[passo+1], OBJECT_TYPE , null);
+    			// adiciona o elemento no super
+    			Map<String, Object> estrutura_super = acessar(caminho);
+    			
+    			// colocar com o tipo OBJETO
+    			estrutura_super.put(type, OBJECT_TYPE);
+    			
+    			if(((List)estrutura_super.get(value)) == null){
+    				estrutura_super.put(value, new ArrayList<Map<String, Object>>());
+    			}
+    			((List)estrutura_super.get(value)).add(elemento_super);
+    			
+        		// se o caminho != val.super (super do objeto que queremos salvar) 
         		// então temos que construir este element e dar mais um passo
-        		// senão estamos acessando o pai do passo destino, devemos...
-        		if(passo < passosDestino.length - 1){
-        			// construir um novo elemento para o value do caminho do passo
-        			Map<String, Object> elemento_super = createElementStruct(passosDestino[passo-1], OBJECT_TYPE , null);
+        		// senão estamos acessando o nosso destino.
+        		if(!(((String)val.get(_super)).trim().equalsIgnoreCase(caminho))){
         			// construir uma nova estrutura para o passo + 1
-        			Map<String, Object> estrutura = createStruct(CURRENT_VERSION, caminho, passosDestino[passo], OBJECT_TYPE, null);
-        			push(elemento_super, caminho);
+        			Map<String, Object> estrutura = createStruct(CURRENT_VERSION, caminho, passosDestino[passo+1], OBJECT_TYPE, null);
+        			boolean val1 = push(estrutura_super, caminho);
+        			boolean val2 = push(estrutura, caminho + DEFAULT_SEP + passosDestino[passo+1]);
+        			//result &= push(estrutura_super, caminho) && push(estrutura, caminho + DEFAULT_SEP + passosDestino[passo]);
+        			result &= val1 && val2;
         			
         		}else{
-        			// construir um novo elemento para o value do caminho do pai do nosso destino.
-        			Map<String, Object> elemento_super = createElementStruct(passosDestino[passo-1], (String)val.get(type), null);
-        			// caso seja um atributo, seu pai já conhece seu valor
-        			if(((String)val.get(type)).trim().equals(ATTRIBUTE_TYPE)){
-        				elemento_super.put(value, val.get(value));
-        			}
-        			val = createStruct(CURRENT_VERSION, caminhoDestino, (String)val.get(label), (String) val.get(type), val.get(value));
+//        			// construir um novo elemento para o value do caminho do pai do nosso destino.
+//        			Map<String, Object> elemento_super = createElementStruct(passosDestino[passo-1], (String)val.get(type), null);
+//        			// caso seja um atributo, seu pai já conhece seu valor
+//        			if(((String)val.get(type)).trim().equalsIgnoreCase(ATTRIBUTE_TYPE)){
+//        				elemento_super.put(value, val.get(value));
+//        			}
+//        			val = createStruct(CURRENT_VERSION, caminhoDestino, (String)val.get(label), (String) val.get(type), val.get(value));
+//        			
+//        			result = push(val, caminhoDestino) && push(elemento_super, caminho);
         			
-        			result = push(val, caminhoDestino) && push(elemento_super, caminho); 
+        			// altera o type da estrutura que está no pai.
+        			estrutura_super.put(type, (String)val.get(type));
+        			
+        			// se o tipo de val não vou atributo,
+        			// entao para cada objeto em val.get(value), criar uma estrutura e dar push
+        			
+        			if(!((String)val.get(type)).trim().equalsIgnoreCase(ATTRIBUTE_TYPE)){
+        				for(HashMap<String, Object> v: (List<HashMap<String, Object>>)val.get(value)){	
+	        				Map<String, Object> estrutura = createStruct(
+	        						(String)val.get(version),
+	        						(String)val.get(_super) + DEFAULT_SEP + (String)val.get(label),
+	        						(String)v.get(label),
+	        						(String)v.get(type),
+	        						(String)v.get(value));
+	        				result &= push(estrutura, (String)val.get(_super)
+	        						+ DEFAULT_SEP
+	        						+ (String)val.get(label)
+	        						+ DEFAULT_SEP
+	        						+ (String)v.get(label));
+        				}
+        			}
+        			
+        			result &= push(estrutura_super, caminho)
+        					&& push(val, (String)val.get(_super) + DEFAULT_SEP + (String)val.get(label));
         			
         		}
+        		passo++;
         		caminho = caminho + DEFAULT_SEP + passosDestino[passo];
-    			passo++;
+    			
         	}
     	}
     	return result;
@@ -384,7 +455,7 @@ public class JsonDao {
     		filePathString = DIR_DB + file + FORMAT_JSON;
     		f = new File(filePathString);
     	}
-        
+    	
         if (f.exists() && !f.isDirectory()) {
         	
         	String jsonText = new Scanner(f)
@@ -408,38 +479,47 @@ public class JsonDao {
         String type = "type";
         String value = "value";
     	
-    	String text = "{";
+    	String text = "{\n";
+    	
     	if(isStruct(val)){
-    		text += version + ": " + val.get(value);
-    		text += _super+ ": " + val.get(_super);
+    		text += getJSFormatedAttribute(version, val)+",\n";
+    		text += getJSFormatedAttribute(_super, val)+",\n";
+    		//text += version + ": " + val.get(version)+",\n";
+    		//text += _super+ ": " + val.get(_super)+",\n";
     	}
-    	text += getJSFormatedAttribute(label, val);
-		text += getJSFormatedAttribute(type, val);
-		text += getValue(val);
-    	text = "}";
+    	text += getJSFormatedAttribute(label, val)+",\n";
+		text += getJSFormatedAttribute(type, val)+",\n";
+		
+		text += getValue(val)+'\n';
+    	text += "}";
     	
-    	File f = new File(DIR_DB + file + FORMAT_JSON);
-    	f.createNewFile();
-    	FileWriter fw = new FileWriter(f);
-    	fw.write(text);
-    	fw.close();
+    	PrintWriter writer = new PrintWriter(DIR_DB + file + FORMAT_JSON, "UTF-8");
+    	writer.println(text);
+    	writer.close();
     	
+    	result = true;
     	return result;
     }
-    
-    // 2) Métodos de checagem e verificação
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// 2) Métodos de checagem e verificação /////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////
     private boolean isExist(String file){
     	String filePathString = DIR_DB + file + FORMAT_JSON;
         File f = new File(filePathString);
         return f.exists() && !f.isDirectory();
     }
     
+    private static boolean isNull(Object val){
+    	return val == null || val.toString().trim().equalsIgnoreCase("null");
+    }
+    
     private static boolean isArray(Object val) {
-        return val instanceof JSONArray;
+        return !isNull(val) && val instanceof JSONArray;
     }
 
-    private static boolean isObject(Object val) throws IllegalArgumentException, JSONException {    	
-    	return val instanceof JSONObject && !isArray(val) && getAttribute("type", (JSONObject)val).trim().equalsIgnoreCase(OBJECT_TYPE);
+    private static boolean isObject(Object val) throws IllegalArgumentException, JSONException {
+    	return !isNull(val) && val instanceof JSONObject && !isArray(val);
+    	
     }
 
     private static boolean isValidType(String type) {
@@ -536,18 +616,29 @@ public class JsonDao {
     	if(((String)val.get(type)).trim().equals(ATTRIBUTE_TYPE)){
     		result += "\"" + (String) val.get(value) + "\"";
     	}else{
-    		result += "[";
-    		for(int i = 0; i < ((List) val.get(value)).size();i++){
-    			result += "{";
-    			result += getJSFormatedAttribute(label, val);
-    			result += getJSFormatedAttribute(type, val);
-    			result += getJSFormatedAttribute(value, null);
-    			result += "}";
-    			if(i < ((List) val.get(value)).size() - 1){
-    				result += ",";
-    			}
+    		
+    		if(val.get(value) == null){
+    			result += "null";
+    		}else{
+    			result += '[';
+	    		for(int i = 0; i < ((List) val.get(value)).size();i++){
+	    		
+	    			result += "{\n";
+	    			result += "\t"+getJSFormatedAttribute(label, (Map)((List) val.get(value)).get(i))+",\n";
+	    			result += "\t"+getJSFormatedAttribute(type, (Map)((List) val.get(value)).get(i))+",\n";
+	    			if(((Map)((List) val.get(value)).get(i)).get(type) == ATTRIBUTE_TYPE){
+	    				result += "\t"+getJSFormatedAttribute(value, (Map)((List) val.get(value)).get(i))+",\n";
+	    			}else{
+	    				result += "\t"+getJSFormatedAttribute(value, null)+",\n";
+	    			}
+	    			
+	    			result += "}";
+	    			if(i < ((List) val.get(value)).size() - 1){
+	    				result += ",";
+	    			}
+	    		}
+	    		result += "]";
     		}
-    		result += "]";
     	}
     	return result;
     }
@@ -563,39 +654,46 @@ public class JsonDao {
         String label = "label";
         String type = "type";
         String value = "value";
-
-        if (!isArray(val.get(value))) {
-            throw new IllegalArgumentException(val.toString() + "Não é uma lista");
+        
+        if (!val.isNull(value) && !isObject(val.get(value)) && !isArray(val.get(value))) {
+            throw new IllegalArgumentException(val.toString() + " Não é uma lista ou um objeto");
         }
-        
-        JSONArray array = (JSONArray) val.get(value);
-        
-        for (int i = 0; i < array.length(); i++) {
-        	JSONObject var = (JSONObject) array.get(i);
-        	String labelVar = getAttribute(label, var);
-        	String typeVar = getAttribute(type, var);
-        	String valueVar;
-            /*  there are three possibles cases:
-                1) an absolute value
-                2) an array element
-                3) an object element
-             */
-            //in the third and second case
-            if (isArray(array.get(i)) || isObject(array.get(i))) {
-            	valueVar = null;
-                // first case
-            } else {
-            	valueVar = getAttribute(value, var);
-            }
-            result.add(createElementStruct(labelVar, typeVar, valueVar));
-
+        if(!val.isNull(value)){
+	        JSONArray array = (JSONArray) val.get(value);
+	        
+	        for (int i = 0; i < array.length(); i++) {
+	        	JSONObject var = (JSONObject) array.get(i);
+	        	String labelVar = getAttribute(label, var);
+	        	String typeVar = getAttribute(type, var);
+	        	String valueVar;
+	            /*  there are three possibles cases:
+	                1) an absolute value
+	                2) an array element
+	                3) an object element
+	             */
+	            //in the third and second case
+	            if (isArray(array.get(i)) || isObject(array.get(i))) {
+	            	valueVar = null;
+	                // first case
+	            } else {
+	            	valueVar = getAttribute(value, var);
+	            }
+	            result.add(createElementStruct(labelVar, typeVar, valueVar));
+	        }
         }
         return result;
     }
     
     private static String getJSFormatedAttribute(String key, Map<String, Object> source){
-    	return key + ": \"" + source.get(key) + "\"";
+    	Object value;
+    	if(source == null){
+    		value = null;
+    	}else{
+    		value = source.get(key);
+    	}
+    	return "\'" + key + "\'" + ": \"" + value + "\"";
     }
+    
     private static String getAttribute(String key, JSONObject source) throws IllegalArgumentException, JSONException {
         String result = "";
         
@@ -609,4 +707,6 @@ public class JsonDao {
         }
         return result = (String) value;
     }
+    
+    
 }
