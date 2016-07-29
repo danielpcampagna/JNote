@@ -1,7 +1,5 @@
 package config;
 
-import android.os.Environment;
-
 import java.net.URL;
 
 public class Configuration {
@@ -11,11 +9,10 @@ public class Configuration {
 	public static final int PRODUCTION 	= 3;
 	public static final int DEFAULT 	= PRODUCTION;
 	
-	//public final static String PREFIXE_DB 		= Configuration.class.getProtectionDomain().getCodeSource().getLocation().getFile()+"db/";
-	public final static String PREFIXE_DB 		= Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
+	public final static String PREFIXE_DB 		= Configuration.class.getProtectionDomain().getCodeSource().getLocation().getFile()+"db/";
 	public final static String DEVELOPMENT_DB 	= PREFIXE_DB + "development/";
 	public final static String TEST_DB 			= PREFIXE_DB + "test/";
-	public final static String PRODUCTION_DB 		= PREFIXE_DB + "/production/";
+	public final static String PRODUCTION_DB 		= PREFIXE_DB + "production/";
 //	private static String DEVELOPMENT_DB 	= PREFIXE_DB + "development/";
 //	private static String TEST_DB 			= PREFIXE_DB + "test/";
 //	private static String PRODUCTION_DB 	= PREFIXE_DB + "production/";

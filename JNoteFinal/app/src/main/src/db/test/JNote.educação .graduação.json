@@ -1,0 +1,21 @@
+{
+	'version': '1.0',
+	'super':'JNote.educacao',
+	'label': "graduação",
+	'type': 3,
+	'value': [
+		{
+			'labe': "nome",
+			'type': 1,
+			'value': "faculdade  y"
+		},{
+			'label': "inicio",
+			'type': 1,
+			'value': "2013"
+		},{
+			'label': "fim",
+			'type': 1,
+			'value': ""
+		}
+	]
+}

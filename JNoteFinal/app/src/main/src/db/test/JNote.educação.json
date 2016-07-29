@@ -1,0 +1,17 @@
+{
+	'version': '1.0',
+	'super':'JNote',
+	'label': "educação",
+	'type': 3,
+	'value': [
+		{
+			'label': "ensino médio",
+			'type': 3,
+			'value': null
+		},{
+			'label':"graduação",
+			'type': 3,
+			'value': null
+		}
+	]
+}

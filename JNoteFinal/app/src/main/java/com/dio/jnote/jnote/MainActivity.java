@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -17,6 +18,8 @@ import android.widget.ListView;
 
 import org.json.JSONException;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private int positionValue;
 
     private void setAuxStringList (){
+        values = (List<Object>) content.get("value");
         auxStringList = new ArrayList<>();
         for (int i = 0; i < values.size() ; i++) {
             auxStringList.add(((Map<String,Object>) values.get(i)).get("label").toString());
@@ -71,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
             if(aux!=null){
                 try {
                     content = dao.acessar(aux[0]);
-                    values = (List<Object>) content.get("value");
+                    //values = (List<Object>) content.get("value");
                     setAuxStringList();
                     if(values.size()!=0)
                         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, auxStringList);
@@ -83,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
             } else{
                 try {
                     content = dao.acessar("JNote");
-                    values = (List<Object>) content.get("value");
+                    //values = (List<Object>) content.get("value");
                     setAuxStringList();
                     if(values.size()!=0)
                         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, auxStringList);
@@ -188,25 +192,57 @@ public class MainActivity extends AppCompatActivity {
                     res[2] = "1";
                     break;
                 case "Dado composto": //LISTA DE STRINGS
-                    res[2] = "2";
-                    break;
-                case "Lista": //LISTA DE OBJETOS
                     res[2] = "3";
                     break;
+                case "Lista": //LISTA DE OBJETOS
+                    res[2] = "2";
+                    break;
             }
-            Map<String, Object> val;
+            Map<String, Object> element;
+            Map<String, Object> struct;
             if(edit==1){
-                val = dao.createStruct("1.0",content.get("super").toString(),res[0],res[2],values.get(positionValue));
+                if(content.get("label").equals("JNote")) {
+                    //element = dao.createElementStruct(res[0], res[2], values.get(positionValue));
+                    struct = dao.createStruct("1.0", "JNote",res[0], res[2], values.get(positionValue));
+                }
+                else {
+                    //element = dao.createElementStruct(res[0], res[2], values.get(positionValue));
+                    struct = dao.createStruct("1.0", content.get("super").toString(), res[0], res[2], values.get(positionValue));
+                }
             }else{
-                val = dao.createStruct("1.0",content.get("super").toString(),res[0],res[2],res[1]);
+                if(content.get("label").equals("JNote")) {
+                    //element = dao.createElementStruct(res[0], res[2], res[1]);
+                    struct = dao.createStruct("1.0", "JNote", res[0], res[2], res[1]);
+                }
+                else {
+                    //element = dao.createElementStruct(res[0], res[2], res[1]);
+                    struct = dao.createStruct("1.0", content.get("super").toString(), res[0], res[2], res[1]);
+                }
             }
             try {
-                if(content.get("label").equals("JNote"))
-                    dao.salvar(val,content.get("label").toString()+"."+res[0],true);
-                else
-                    dao.salvar(val,content.get("super").toString()+"."+res[0],true);
+                if(content.get("label").equals("JNote")) {
+                    //dao.salvar(element, content.get("label").toString(), true);
+                    dao.salvar(struct, content.get("label").toString() + "." + res[0], true);
+                }
+                else {
+                    //dao.salvar(element, content.get("super").toString(), true);
+                    dao.salvar(struct, content.get("super").toString() + "." + res[0], true);
+                }
             } catch (Exception e) {
                 System.out.println(e);
+            }
+            if(content.get("label").equals("JNote")) {
+                try {
+                    content = dao.acessar("JNote");
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+            }else{
+                try {
+                    content = dao.acessar(content.get("super").toString());
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
             }
             setAuxStringList();
             adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, auxStringList);
