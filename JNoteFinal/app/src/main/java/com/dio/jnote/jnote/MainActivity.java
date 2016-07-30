@@ -222,11 +222,11 @@ public class MainActivity extends AppCompatActivity {
             try {
                 if(content.get("label").equals("JNote")) {
                     //dao.salvar(element, content.get("label").toString(), true);
-                    dao.salvar(struct, content.get("label").toString() + "." + res[0], true);
+                    dao.salvar(struct, true);
                 }
                 else {
                     //dao.salvar(element, content.get("super").toString(), true);
-                    dao.salvar(struct, content.get("super").toString() + "." + res[0], true);
+                    dao.salvar(struct, true);
                 }
             } catch (Exception e) {
                 System.out.println(e);
